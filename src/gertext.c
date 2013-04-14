@@ -33,7 +33,7 @@ PBL_APP_INFO(
 	UUID,
 	"Text DE",
 	"smashd.de",
-	3, 0, // Version
+	3, 1, // Version
 	RESOURCE_ID_IMAGE_MENU_ICON,
 	APP_INFO_WATCH_FACE
 );
@@ -41,6 +41,7 @@ PBL_APP_INFO(
 
 
 static Window window;
+static GFont font_small;
 static GFont font_thin;
 static GFont font_thick;
 
@@ -74,21 +75,26 @@ static const char *nums[] = {
 	"zwoelf",
 	"dreizehn",
 	"vierzehn",
-	"viertel",
+	"fuenfzehn",
 	"sechzehn",
 	"siebzehn",
 	"achtzehn",
 	"neunzehn",
-	"zwanzig",
-	"einundzwanzig",
-	"zweiundzwanzig",
-	"dreiundzwanzig",
-	"vierundzwanzig",
-	"fuenfundzwanzig",
-	"sechsundzwanzig",
-	"siebenundzwanzig",
-	"achtundzwanzig",
-	"neunundzwanzig"
+	"zwanzig"
+};
+
+static const char *nums_und[] = {
+	//for 31 - 39 because idk how to combine string* :P
+	"",
+	"einund",
+	"zweiund",
+	"dreiund",
+	"vierund",
+	"fuenfund",
+	"sechsund",
+	"siebenund",
+	"achtund",
+	"neunund"
 };
 
 static const char *
@@ -97,6 +103,14 @@ min_string(
 )
 {
 	return nums[i];
+}
+
+static const char *
+min_string_und(
+	int i
+)
+{
+	return nums_und[i];
 }
 
 
@@ -116,12 +130,13 @@ hour_string(
 		return nums[h];
 	else
 //		return nums[h - 12];
+// cheap - i know :P
 		return nums[h];
 }
 
 
 static void
-nederlands_format(
+german_format(
 	int hour,
 	int min
 )
@@ -130,13 +145,21 @@ nederlands_format(
 	{
 		min_word.text = "";
 		rel_word.text = "";
+		hour_word.text = hour_string(hour);
 	} else
-	if (min <= 15)
-//	if (min <= 29)
+	if (min < 15)
 	{
 		// over the hour
 		min_word.text = min_string(min);
 		rel_word.text = "nach";
+		hour_word.text = hour_string(hour);
+	} else
+	if (min == 15)
+	{
+		// over the hour
+		min_word.text = "zwanzig";
+		rel_word.text = "nach";
+		hour_word.text = hour_string(hour);
 	} else
 	if (min < 30)
 	{
@@ -144,6 +167,7 @@ nederlands_format(
 		min_word.text = min_string(30 - min);
 		rel_word.text = "vor halb";
 		hour++;
+		hour_word.text = hour_string(hour);
 	} else
 	if (min == 30)
 	{
@@ -151,20 +175,44 @@ nederlands_format(
 		min_word.text = "";
 		rel_word.text = "halb";
 		hour++;
+		hour_word.text = hour_string(hour);
+	} else
+
+
+
+	if (min < 40)
+	{
+		// 31 - 39
+		min_word.text = min_string_und(min - 30);
+		rel_word.text = "dreissig nach";
+		//hour++;
+		hour_word.text = hour_string(hour);
+	} else
+	if (min == 40)
+	{
+		min_word.text = min_string(60 - min);
+		rel_word.text = "vor";
+		hour++;
+		hour_word.text = hour_string(hour);
 	} else
 	if (min < 45)
 	{
-		// over the half
-		min_word.text = min_string(min - 30);
-		rel_word.text = "nach halb";
+		// 41 - 44
+		min_word.text = "viertel";
+		rel_word.text = "vor";
 		hour++;
+		hour_word.text = hour_string(hour);
 	} else
+
+
+
 	if (min == 45)
 	{
 		// just the kwart
 		min_word.text = "";
 		rel_word.text = "viertel vor";
 		hour++;
+		hour_word.text = hour_string(hour);
 	} else
 	if (min < 60)
 	{
@@ -172,9 +220,9 @@ nederlands_format(
 		min_word.text = min_string(60 - min);
 		rel_word.text = "vor";
 		hour++;
+		hour_word.text = hour_string(hour);
 	}
 
-	hour_word.text = hour_string(hour);
 
 	// at midnight and noon do not display an am/pm notation
 	// but don't say "before midnight"
@@ -186,11 +234,14 @@ nederlands_format(
 	if (hour < 6)
 		ampm_word.text = "nachts";
 	else
-	if (hour <= 12)
+	if (hour < 12)
 		ampm_word.text = "morgens";
 	else
-	if (hour <= 17)
+	if (hour <= 15)
 		ampm_word.text = "mittags";
+	else
+	if (hour <= 18)
+		ampm_word.text = "nachmittags";
 	else
 	if (hour <= 24)
 		ampm_word.text = "abends";
@@ -226,7 +277,7 @@ handle_tick(
 	rel_word.old_text = rel_word.text;
 	min_word.old_text = min_word.text;
 
-	nederlands_format(hour,  min);
+	german_format(hour,  min);
 
 /*
 	string_format_time(
@@ -285,14 +336,24 @@ handle_init(
 	int y = 15;
 	int h = 30;
 
+	font_small = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_22));
 	font_thin = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_28));
-	font_thick = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_BLACK_30));
+	font_thick = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_BLACK_28));
 
 	// Stack top to bottom.  Note that the hour can take up
 	// two rows at midnight.
 	text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_thin);
 	text_layer(&hour_word, GRect(4, y + 2*h, 144, 2*h+8), font_thick);
-	text_layer(&rel_word, GRect(4, y + 1*h, 144, h+8), font_thin);
+
+	// long string = smaller font for this one
+	//if (rel_word.text == "dreissig nach")
+	//strcmp totally unknows/untested
+	if (strcmp(rel_word.text,"dreissig nach") == 0)
+		text_layer(&rel_word, GRect(4, y + 34, 144, h+8), font_small);
+	else
+		text_layer(&rel_word, GRect(4, y + 1*h, 144, h+8), font_thin);
+
+
 	text_layer(&min_word, GRect(4, y + 0*h, 144, h+8), font_thin);
 
 }
@@ -305,6 +366,7 @@ handle_deinit(
 {
 	(void) ctx;
 
+	fonts_unload_custom_font(font_small);
 	fonts_unload_custom_font(font_thin);
 	fonts_unload_custom_font(font_thick);
 }

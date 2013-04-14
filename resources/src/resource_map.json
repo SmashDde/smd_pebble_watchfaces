@@ -18,7 +18,13 @@
 
   {
 				"type":"font",
-				"defName":"FONT_ARIAL_BLACK_30",
+				"defName":"FONT_ARIAL_22",
+				"file":"fonts/Arial.ttf"
+  },
+
+  {
+				"type":"font",
+				"defName":"FONT_ARIAL_BLACK_28",
 				"file":"fonts/Arial-Black.ttf"
   }
 
