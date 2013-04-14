@@ -8,7 +8,6 @@ It looks like this:
 ![](/screenshot.jpg)
 
 Based on the [Hoe Laat Source by Hudson][0].
-
 Thread in the Pebble Developer Forums [here][1].
 
 [0]: https://bitbucket.org/hudson/pebble
