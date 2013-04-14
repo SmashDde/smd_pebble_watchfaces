@@ -1,0 +1,28 @@
+{
+    "friendlyVersion": "dev_0.0",
+    "versionDefName": "APP_RESOURCES",
+
+    "media": [
+
+	{
+        "type": "png",
+        "defName": "IMAGE_MENU_ICON",
+        "file": "images/menu_icon_gertext_watch.png"
+	},
+
+  {
+				"type":"font",
+				"defName":"FONT_ARIAL_28",
+				"file":"fonts/Arial.ttf"
+  },
+
+  {
+				"type":"font",
+				"defName":"FONT_ARIAL_BLACK_30",
+				"file":"fonts/Arial-Black.ttf"
+  }
+
+
+    ]
+}
+
