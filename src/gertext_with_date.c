@@ -1,8 +1,10 @@
 /** \file
- * Word clock, with german time.
+ * Word clock, with german time and date.
  * word clock source adapted from https://bitbucket.org/hudson/pebble
+ * date source adapted from https://github.com/plan44/timedot_pebble 
  *
- * ALMOST UNTESTED CODE DUE TO LIBPEBBLE NOT WORKING HERE AND IOS APP NOT YET APPROVED
+ * UNTESTED AND BROKEN CODE 
+ * DUE TO LIBPEBBLE NOT WORKING HERE AND IOS APP NOT YET APPROVED
  *
  * 2013 SmashD // smashd.de
  */
@@ -12,12 +14,12 @@
 #include "pebble_th.h"
 #include "layer.c"
 
-#define UUID { 0x5D, 0xBE, 0xBB, 0x58, 0x3C, 0xF4, 0x4C, 0xAF, 0xB4, 0xAC, 0x02, 0x44, 0xA2, 0x99, 0x99, 0x99 },
+#define UUID { 0x5D, 0xBE, 0xBB, 0x58, 0x3C, 0xF4, 0x4C, 0xAF, 0xB4, 0xAC, 0x02, 0x44, 0xA3, 0x99, 0x99, 0x99 },
 PBL_APP_INFO(
 	UUID,
 	"Text DE",
 	"smashd.de",
-	3, 1, // Version
+	3, 21, // Version
 	RESOURCE_ID_IMAGE_MENU_ICON,
 	APP_INFO_WATCH_FACE
 );
@@ -42,8 +44,20 @@ static word_t rel_word;
 static word_t hour_word;
 static word_t ampm_word;
 
-int small_font_int_rel=0;
-int small_font_int_ampm=0;
+
+// date addition
+TextLayer weekday_display_textlayer;
+TextLayer date_display_textlayer;
+int dateTextValid;
+#define TIME_STR_BUFFER_BYTES 20
+char time_str_buffer[TIME_STR_BUFFER_BYTES];
+char weekday_str_buffer[TIME_STR_BUFFER_BYTES];
+char date_str_buffer[TIME_STR_BUFFER_BYTES];
+#define AUXTEXT_LAYER_EXTRAMARGIN_H 17
+#define AUXTEXT_H 20
+#define AUXTEXT_FONT FONT_KEY_GOTHIC_18_BOLD
+// date addition
+
 
 static const char *nums[] = {
 	"",
@@ -72,16 +86,57 @@ static const char *nums[] = {
 static const char *nums_und[] = {
 	//for 31 - 39 because idk how to combine string* :P
 	"",
-	"ein und",
-	"zwei und",
-	"drei und",
-	"vier und",
-	"fuenf und",
-	"sechs und",
-	"siebe nund",
-	"acht und",
-	"neun und"
+	"einund",
+	"zweiund",
+	"dreiund",
+	"vierund",
+	"fuenfund",
+	"sechsund",
+	"siebenund",
+	"achtund",
+	"neunund"
 };
+
+// date addition
+static const char *months[] = {
+	"Januar",
+	"Februar",
+	"Maerz",
+	"April",
+	"Mai",
+	"Juni",
+	"Juli",
+	"August",
+	"September",
+	"Oktober",
+	"November",
+	"Dezember"
+};
+static const char *
+month_string(
+	int i
+)
+{
+	return months[i];
+}
+
+static const char *days[] = {
+	"Montag",
+	"Dienstag",
+	"Mittwoch",
+	"Donnerstag",
+	"Freitag",
+	"Samstag",
+	"Sonntag"
+};
+static const char *
+day_string(
+	int i
+)
+{
+	return days[i];
+}
+// date addition
 
 static const char *
 min_string(
@@ -115,7 +170,9 @@ hour_string(
 	if (h < 12)
 		return nums[h];
 	else
-		return nums[h - 12];
+//		return nums[h - 12];
+// cheap - i know :P
+		return nums[h];
 }
 
 
@@ -125,7 +182,6 @@ german_format(
 	int min
 )
 {
-	small_font_int_rel = 0;
 	if (min == 0)
 	{
 		min_word.text = "";
@@ -162,6 +218,9 @@ german_format(
 		hour++;
 		hour_word.text = hour_string(hour);
 	} else
+
+
+
 	if (min < 40)
 	{
 		// 31 - 39
@@ -169,7 +228,6 @@ german_format(
 		rel_word.text = "dreissig nach";
 		//hour++;
 		hour_word.text = hour_string(hour);
-		small_font_int_rel = 1;
 	} else
 	if (min == 40)
 	{
@@ -186,6 +244,9 @@ german_format(
 		hour++;
 		hour_word.text = hour_string(hour);
 	} else
+
+
+
 	if (min == 45)
 	{
 		// just the kwart
@@ -210,31 +271,21 @@ german_format(
 	{
 		// nothing to do
 		ampm_word.text = "";
-		small_font_int_ampm = 0;
 	} else
 	if (hour < 6)
 		ampm_word.text = "nachts";
 	else
-	if (hour < 9)
-		ampm_word.text = "frueh";
-	else
-	if (hour <= 11 && min <= 30)
-		ampm_word.text = "vormittag";
-	else
-	if (hour <= 13 && min <= 59)
+	if (hour < 12)
 		ampm_word.text = "morgens";
 	else
-	if (hour <= 17 && min <= 59)
-	{	
-		ampm_word.text = "nachmittags";
-		small_font_int_ampm = 1;
-	}
+	if (hour <= 15)
+		ampm_word.text = "mittags";
 	else
-	if (hour <= 21 && min <=59)
-		ampm_word.text = "abends";
+	if (hour <= 18)
+		ampm_word.text = "nachmittags";
 	else
 	if (hour <= 24)
-		ampm_word.text = "nachts";
+		ampm_word.text = "abends";
 }
 
 
@@ -282,6 +333,52 @@ handle_tick(
 	update_word(&hour_word);
 	update_word(&rel_word);
 	update_word(&min_word);
+
+
+
+// date addition
+  if (!dateTextValid) {
+
+		//i have no clue what I am doing here ;)
+		
+		char year_temp[4];
+		char month_temp[15];
+		char day_temp[15];
+		int month_temp_int;
+		int day_temp_int;
+
+		string_format_time(year_temp, 20, "%Y", event->tick_time);
+		string_format_time(month_temp, 20, "%m", event->tick_time);
+		string_format_time(day_temp, 20, "%d", event->tick_time);
+
+		month_temp_int = (int)month_temp;
+		day_temp_int = (int)day_temp;
+
+		memcpy(month_temp, month_string(month_temp_int), sizeof(month_string(month_temp_int)));
+		memcpy(day_temp, day_string(day_temp_int), sizeof(day_string(day_temp_int)));
+//		month_temp = month_string(month_temp_int);
+//		day_temp = day_string(day_temp_int);
+
+    char date_line[20];
+    strcat(date_line,day_temp);
+    strcat(date_line,". ");
+    strcat(date_line,month_temp);
+    strcat(date_line," ");
+    strcat(date_line,year_temp);
+
+    // update weekday text
+				//longest possible string
+				//string_format_time(weekday_str_buffer, TIME_STR_BUFFER_BYTES, "Donnerstag", event->tick_time);
+    string_format_time(weekday_str_buffer, TIME_STR_BUFFER_BYTES, day_string(day_temp_int), event->tick_time);
+    text_layer_set_text(&weekday_display_textlayer, weekday_str_buffer);
+
+    // update date text
+				//longest possible string
+				//string_format_time(date_str_buffer, TIME_STR_BUFFER_BYTES, "09. September 2022", event->tick_time);
+    string_format_time(date_str_buffer, TIME_STR_BUFFER_BYTES, date_line, event->tick_time);
+    text_layer_set_text(&date_display_textlayer, date_str_buffer);
+  }
+// date addition
 }
 
 
@@ -304,7 +401,7 @@ text_layer(
 		&frame
 	);
 
-	animation_set_duration(&word->anim.animation, 1250);
+	animation_set_duration(&word->anim.animation, 750);
 	animation_set_curve(&word->anim.animation, AnimationCurveEaseIn);
 }
 
@@ -315,6 +412,7 @@ handle_init(
 )
 {
 	(void) ctx;
+
 
 	window_init(&window, "Main");
 	window_stack_push(&window, true);
@@ -328,23 +426,62 @@ handle_init(
 
 	font_small = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_22));
 	font_thin = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_28));
-	font_thick = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_BLACK_30));
+	font_thick = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ARIAL_BLACK_28));
 
 	// Stack top to bottom.  Note that the hour can take up
 	// two rows at midnight.
-	if (small_font_int_ampm == 1)
-		text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_small);
-	else
-		text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_thin);
+	text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_thin);
+	text_layer(&hour_word, GRect(4, y + 2*h, 144, 2*h+8), font_thick);
 
-	text_layer(&hour_word, GRect(4, y + 2*h-2, 144, 2*h+8), font_thick);
-
-	if (small_font_int_rel == 1)
+	// long string = smaller font for this one
+	//if (rel_word.text == "dreissig nach")
+	//strcmp totally unknows/untested
+	if (strcmp(rel_word.text,"dreissig nach") == 0)
 		text_layer(&rel_word, GRect(4, y + 34, 144, h+8), font_small);
 	else
 		text_layer(&rel_word, GRect(4, y + 1*h, 144, h+8), font_thin);
 
+
 	text_layer(&min_word, GRect(4, y + 0*h, 144, h+8), font_thin);
+
+
+
+// date addition
+  dateTextValid = 0; // date text not valid
+
+
+  // the text layer for displaying the date below the time
+  GRect df = window.layer.frame;
+  // - at bottom of the screen
+  df.origin.y = df.size.h-AUXTEXT_H+2; // to REALLY use the last pixel on the screen
+  df.size.h = AUXTEXT_H;
+  text_layer_init(&date_display_textlayer, df);
+  // - parameters
+  text_layer_set_text_alignment(&date_display_textlayer, GTextAlignmentRight); // centered
+  text_layer_set_background_color(&date_display_textlayer, GColorBlack); // black background
+  text_layer_set_font(&date_display_textlayer, fonts_get_system_font(AUXTEXT_FONT)); // font
+  text_layer_set_text_color(&date_display_textlayer, GColorWhite); // white text
+  text_layer_set_text(&date_display_textlayer, "smashd.de");
+  layer_add_child(&window.layer, &date_display_textlayer.layer);
+
+
+ // the text layer for displaying the weekday on top of the date
+  GRect wf = window.layer.frame;
+  // - on top of the screen
+//  wf.origin.y = -7; // to REALLY use the first pixel on the screen
+  wf.origin.y = wf.size.h-AUXTEXT_H-AUXTEXT_H+2; // works? dunno yet...
+  wf.size.h = AUXTEXT_H;
+  text_layer_init(&weekday_display_textlayer, wf);
+  // - parameters
+  text_layer_set_text_alignment(&weekday_display_textlayer, GTextAlignmentRight); // right
+  text_layer_set_background_color(&weekday_display_textlayer, GColorBlack); // black background
+  text_layer_set_font(&weekday_display_textlayer, fonts_get_system_font(AUXTEXT_FONT)); // font
+  text_layer_set_text_color(&weekday_display_textlayer, GColorWhite); // white text
+  text_layer_set_text(&weekday_display_textlayer, "Text DE © 2013");
+  layer_add_child(&window.layer, &weekday_display_textlayer.layer);
+
+
+// date addition
 
 }
 
