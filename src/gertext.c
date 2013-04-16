@@ -106,7 +106,7 @@ hour_string(
 )
 {
 	// only if it is actually midnight, not "before midnight"
-	if (h == 0)
+	if ( (h == 0) || (h == 24) )
 		return "mitter-\nnacht";
 
 	if (h == 12)
@@ -218,19 +218,19 @@ german_format(
 	if (hour < 9)
 		ampm_word.text = "frueh";
 	else
-	if (hour <= 11 && min <= 30)
-		ampm_word.text = "vormittag";
+	if ( (hour < 11) || (hour == 11 && min <= 30) )
+		ampm_word.text = "vormittags";
 	else
-	if (hour <= 13 && min <= 59)
+	if ( (hour < 13) || (hour == 13 && min <= 59) )
 		ampm_word.text = "morgens";
 	else
-	if (hour <= 17 && min <= 59)
+	if ( (hour < 17) || (hour == 17 && min <= 59) )
 	{	
 		ampm_word.text = "nachmittags";
 		small_font_int_ampm = 1;
 	}
 	else
-	if (hour <= 21 && min <=59)
+	if ( (hour < 21) || (hour == 21 && min <=59) )
 		ampm_word.text = "abends";
 	else
 	if (hour <= 24)
