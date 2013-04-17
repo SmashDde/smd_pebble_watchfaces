@@ -30,7 +30,7 @@ PBL_APP_INFO(
 	UUID,
 	"Text DE",
 	"smashd.de",
-	3, 1, // Version
+	3, 30, // Version
 	RESOURCE_ID_IMAGE_MENU_ICON,
 	APP_INFO_WATCH_FACE
 );
@@ -52,11 +52,13 @@ typedef struct
 
 static word_t min_word;
 static word_t rel_word;
+static word_t rel_small_word;
 static word_t hour_word;
 static word_t ampm_word;
+static word_t ampm_small_word;
 
-int small_font_int_rel=0;
-int small_font_int_ampm=0;
+//int small_font_int_rel=0;
+//int small_font_int_ampm=0;
 
 static const char *nums[] = {
 	"",
@@ -138,7 +140,14 @@ german_format(
 	int min
 )
 {
-	small_font_int_rel = 0;
+	//DEBUG:
+	//min = 39;
+	//hour = 17;
+	
+	rel_small_word.text = "";
+	ampm_small_word.text = "";
+	
+	
 	if (min == 0)
 	{
 		min_word.text = "";
@@ -147,21 +156,30 @@ german_format(
 	} else
 	if (min < 15)
 	{
-		// over the hour
 		min_word.text = min_string(min);
 		rel_word.text = "nach";
 		hour_word.text = hour_string(hour);
 	} else
 	if (min == 15)
 	{
-		// over the hour
+		min_word.text = "viertel";
+		rel_word.text = "nach";
+		hour_word.text = hour_string(hour);
+	} else
+	if (min < 20)
+	{
+		min_word.text = min_string(min);
+		rel_word.text = "nach";
+		hour_word.text = hour_string(hour);
+	} else
+	if (min == 20)
+	{
 		min_word.text = "zwanzig";
 		rel_word.text = "nach";
 		hour_word.text = hour_string(hour);
 	} else
 	if (min < 30)
 	{
-		// over the kwart
 		min_word.text = min_string(30 - min);
 		rel_word.text = "vor halb";
 		hour++;
@@ -169,7 +187,6 @@ german_format(
 	} else
 	if (min == 30)
 	{
-		// just the half
 		min_word.text = "";
 		rel_word.text = "halb";
 		hour++;
@@ -179,14 +196,15 @@ german_format(
 	{
 		// 31 - 39
 		min_word.text = min_string_und(min - 30);
-		rel_word.text = "dreissig nach";
+		rel_small_word.text = "dreissig nach";
+		rel_word.text = "";
 		//hour++;
 		hour_word.text = hour_string(hour);
-		small_font_int_rel = 1;
+		//small_font_int_rel = 1;
 	} else
 	if (min == 40)
 	{
-		min_word.text = min_string(60 - min);
+		min_word.text = "zwanzig";
 		rel_word.text = "vor";
 		hour++;
 		hour_word.text = hour_string(hour);
@@ -223,31 +241,38 @@ german_format(
 	{
 		// nothing to do
 		ampm_word.text = "";
-		small_font_int_ampm = 0;
+		//small_font_int_ampm = 0;
 	} else
-	if (hour < 6)
+	if ( (hour < 6 ) && (hour != 24) && (hour != 0) )
 		ampm_word.text = "nachts";
 	else
 	if (hour < 9)
 		ampm_word.text = "frueh";
 	else
 	if ( (hour < 11) || (hour == 11 && min <= 30) )
-		ampm_word.text = "vormittags";
+	{	
+		ampm_small_word.text = "vormittags";
+		ampm_word.text = "";
+		//small_font_int_ampm = 1;
+	}
 	else
 	if ( (hour < 13) || (hour == 13 && min <= 59) )
 		ampm_word.text = "morgens";
 	else
 	if ( (hour < 17) || (hour == 17 && min <= 59) )
 	{	
-		ampm_word.text = "nachmittags";
-		small_font_int_ampm = 1;
+		ampm_small_word.text = "nachmittags";
+		ampm_word.text = "";
+		//small_font_int_ampm = 1;
 	}
 	else
 	if ( (hour < 21) || (hour == 21 && min <=59) )
 		ampm_word.text = "abends";
 	else
-	if (hour <= 24)
+	if (hour < 24)
 		ampm_word.text = "nachts";
+	else
+		ampm_word.text = "";
 }
 
 
@@ -257,6 +282,16 @@ update_word(
 )
 {
 	text_layer_set_text(&word->layer, word->text);
+  text_layer_set_background_color(&word->layer,GColorClear);
+  text_layer_set_text_color(&word->layer,GColorWhite);
+/*	
+	if (strcmp(word->text, "") == 0)
+		//layer_set_hidden(&word->layer.layer, true);
+		layer_set_hidden(min_word.layer, true);
+	else
+		layer_set_hidden(&word->layer.layer, false);
+*/
+	
 	if (word->text != word->old_text)
 		animation_schedule(&word->anim.animation);
 }
@@ -276,8 +311,10 @@ handle_tick(
 	int min = ptm->tm_min;
 
 	ampm_word.old_text = ampm_word.text;
+	ampm_small_word.old_text = ampm_small_word.text;
 	hour_word.old_text = hour_word.text;
 	rel_word.old_text = rel_word.text;
+	rel_small_word.old_text = rel_small_word.text;
 	min_word.old_text = min_word.text;
 
 	german_format(hour,  min);
@@ -292,8 +329,10 @@ handle_tick(
 */
 
 	update_word(&ampm_word);
+	update_word(&ampm_small_word);
 	update_word(&hour_word);
 	update_word(&rel_word);
+	update_word(&rel_small_word);
 	update_word(&min_word);
 }
 
@@ -317,7 +356,7 @@ text_layer(
 		&frame
 	);
 
-	animation_set_duration(&word->anim.animation, 1250);
+	animation_set_duration(&word->anim.animation, 500);
 	animation_set_curve(&word->anim.animation, AnimationCurveEaseIn);
 }
 
@@ -345,19 +384,16 @@ handle_init(
 
 	// Stack top to bottom.  Note that the hour can take up
 	// two rows at midnight.
-	if (small_font_int_ampm == 1)
-		text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_small);
-	else
-		text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_thin);
+	text_layer(&ampm_small_word, GRect(4, y + 3*h+2, 144, h+8), font_small);
+	text_layer(&ampm_word, GRect(4, y + 3*h, 144, h+8), font_thin);
 
 	text_layer(&hour_word, GRect(4, y + 2*h-2, 144, 2*h+8), font_thick);
 
-	if (small_font_int_rel == 1)
-		text_layer(&rel_word, GRect(4, y + 34, 144, h+8), font_small);
-	else
-		text_layer(&rel_word, GRect(4, y + 1*h, 144, h+8), font_thin);
+	text_layer(&rel_small_word, GRect(4, y + 1*h+2, 144, h+8), font_small);
+	text_layer(&rel_word, GRect(4, y + 1*h, 144, h+8), font_thin);
 
 	text_layer(&min_word, GRect(4, y + 0*h, 144, h+8), font_thin);
+
 
 }
 

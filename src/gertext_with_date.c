@@ -3,7 +3,7 @@
  * word clock source adapted from https://bitbucket.org/hudson/pebble
  * date source adapted from https://github.com/plan44/timedot_pebble 
  *
- * UNTESTED AND BROKEN CODE 
+ * UNTESTED, BROKEN AND OUTDATED CODE 
  * DUE TO LIBPEBBLE NOT WORKING HERE AND IOS APP NOT YET APPROVED
  *
  * 2013 SmashD // smashd.de
