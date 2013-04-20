@@ -1,11 +1,17 @@
-Circling Hour Watchface
+Circling Hour Watchface with date
 ==================
 
 This is a custom watchface for the Pebble smart watch.
 
 It looks like this:
 
-![](/screenshots/watchface.png)
+![](/screenshots/watchface_date-day-center.png)
+![](/screenshots/watchface_date-day.png)
+![](/screenshots/watchface_date-day-month-week.png)
+
+3 versions: 
+date-day-center, date-day, date-day-month-week
+
 
 Thread in the Pebble Developer Forums [here][0].
 
