@@ -6,6 +6,7 @@ This is a custom watchface for the Pebble smart watch.
 It looks like this:
 
 ![](/screenshot.jpg)
+![](/screenshots/watchface.png)
 
 Based on the [Hoe Laat Source by Hudson][0].
 Thread in the Pebble Developer Forums [here][1].
