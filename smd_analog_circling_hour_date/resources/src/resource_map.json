@@ -37,31 +37,31 @@
 	{
         "type": "png",
         "defName": "IMAGE_HOUR_4",
-        "file": "images/4.png"
+        "file": "images/4i.png"
 	},
 
 	{
         "type": "png",
         "defName": "IMAGE_HOUR_5",
-        "file": "images/5.png"
+        "file": "images/5i.png"
 	},
 
 	{
         "type": "png",
         "defName": "IMAGE_HOUR_6",
-        "file": "images/6.png"
+        "file": "images/6i.png"
 	},
 
 	{
         "type": "png",
         "defName": "IMAGE_HOUR_7",
-        "file": "images/7.png"
+        "file": "images/7i.png"
 	},
 
 	{
         "type": "png",
         "defName": "IMAGE_HOUR_8",
-        "file": "images/8.png"
+        "file": "images/8i.png"
 	},
 
 	{

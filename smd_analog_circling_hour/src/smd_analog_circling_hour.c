@@ -26,7 +26,7 @@
 #include "layer.c"
 
 #define MY_UUID {0x13, 0x37, 0x13, 0x37, 0x13, 0x37, 0x13, 0x37, 0xAB, 0xCD, 0xDC, 0xBA, 0x11, 0x22, 0x33, 0x44}
-PBL_APP_INFO(MY_UUID, "Circling Hours", "smashd.de", 1, 0, RESOURCE_ID_IMAGE_MENU_ICON, APP_INFO_WATCH_FACE);
+PBL_APP_INFO(MY_UUID, "Circling Hours", "smashd.de", 1, 10, RESOURCE_ID_IMAGE_MENU_ICON, APP_INFO_WATCH_FACE);
 
 Window window;
 
@@ -252,7 +252,7 @@ if ( (t.tm_min == 0) || (strcmp(first_run, "true") == 0) )
 	  	{ 
 	  		layer_set_hidden(&hour_image_container_11.layer.layer, false);
 			} else
-	  if ( (t.tm_hour==12) || (t.tm_hour==24) )
+	  if ( (t.tm_hour==12) || (t.tm_hour==24) || (t.tm_hour==0) )
 	  	{ 
 	  		layer_set_hidden(&hour_image_container_12.layer.layer, false);
 			}
@@ -307,7 +307,7 @@ ROTATION
   	{ 
 			set_hand_angle(&hour_image_container_11, hand_angle_precalc);
 		} else
-  if ( (t.tm_hour==12) || (t.tm_hour==24) )
+  if ( (t.tm_hour==12) || (t.tm_hour==24) || (t.tm_hour==0) )
   	{ 
 			set_hand_angle(&hour_image_container_12, hand_angle_precalc);
 		}
