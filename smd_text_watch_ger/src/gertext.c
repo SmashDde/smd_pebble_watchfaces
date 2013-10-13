@@ -93,7 +93,7 @@ static const char *nums_und[] = {
 	"vier und",
 	"fuenf und",
 	"sechs und",
-	"siebe nund",
+	"sieben und",
 	"acht und",
 	"neun und"
 };
